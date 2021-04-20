@@ -1,7 +1,7 @@
 import os
 import argparse
 import torch
-from load import load_igpt
+from model import load_igpt
 from utils import load_dataloaders, freeze_trunk, train, validate
 
 parser = argparse.ArgumentParser(description='Train model')
