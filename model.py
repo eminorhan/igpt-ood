@@ -115,7 +115,7 @@ class ln_mod(nn.Module):
         self.eps = eps
         self.weight = Parameter(torch.Tensor(nx))
 
-    def forward(self,x):  # input is not mean centered
+    def forward(self, x):  # input is not mean centered
         return x / torch.sqrt(torch.std(x, axis=-1, unbiased=False, keepdim=True)**2 + self.eps ) * self.weight.data[...,:] 
 
 def replace_ln(m, name, config):
@@ -172,11 +172,7 @@ class LinearProbeImageGPT(nn.Module):
 
         x = self.drop(token_embeddings + position_embeddings)
         for block in range(len(self.blocks)):
-            print(block)
-            x = self.blocks[block](x)
-            print(x[0].shape)
-            if block>0:
-                print(x[1].shape)
+            x = self.blocks[block](x)[0]
 
         x = self.ln_1(x)
         x = torch.mean(x, 1, False)
