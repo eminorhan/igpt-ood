@@ -194,7 +194,6 @@ def load_igpt(model_size, model_path, cluster_path, n_px, prly, n_classes):
     vocab_size = len(clusters) + 1  # add one for start of sentence token
     config = transformers.GPT2Config(vocab_size=vocab_size, n_ctx=n_px*n_px, n_positions=n_px*n_px, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
     model = ImageGPT2LMHeadModel.from_pretrained(model_path, from_tf=True, config=config)
-    print(model.transformer.h[:prly])
 
     head = torch.nn.Linear(in_features=n_embd, out_features=n_classes, bias=True)
     model = LinearProbeImageGPT(model.transformer.wte, model.transformer.wpe, model.transformer.drop, model.transformer.h[:prly], model.transformer.h[prly+1].ln_1, head)
