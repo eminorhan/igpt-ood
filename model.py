@@ -178,7 +178,7 @@ class LinearProbeImageGPT(nn.Module):
         x = torch.mean(x, 1, False)
         logits = self.head(x)
 
-        return logits        
+        return logits
 
 def load_igpt(model_size, model_path, cluster_path, n_px, prly, n_classes):
     """ Load pretrained model and clusters """

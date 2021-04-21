@@ -12,8 +12,9 @@ parser.add_argument('--cluster_path', default='/scratch/eo41/image-gpt/models/l/
 parser.add_argument('--n_classes', default=26, type=int, help='number of classes in downstream classification task')
 parser.add_argument('--batch_size', default=128, type=int, help='batch size')
 parser.add_argument('--epochs', default=15, type=int, help='epochs')
-parser.add_argument('--prly', default=19, type=int, help='probe layer')
+parser.add_argument('--prly', default=5, type=int, help='probe layer')
 parser.add_argument('--workers', default=8, type=int, help='number of workers for data loaders')
+parser.add_argument('--print_freq', default=100, type=int, help='print results after this many iterations')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -23,7 +24,8 @@ if __name__ == '__main__':
 
     # load model and clusters
     model, clusters = load_igpt(args.model_size, args.model_path, args.cluster_path, n_px, args.prly, args.n_classes)
-    freeze_trunk(model)  # TODO: make sure this works
+    freeze_trunk(model) 
+
     model = torch.nn.DataParallel(model).cuda()
 
     # load train and val loader
@@ -37,7 +39,7 @@ if __name__ == '__main__':
 
     # training loop
     for epoch in range(1, args.epochs+1):
-        tr_acc1 = train(train_loader, model, criterion, optimizer, epoch)
+        tr_acc1 = train(train_loader, model, criterion, optimizer, epoch, args.print_freq)
         tr_acc1_list.append(tr_acc1)
 
     # validate at end of training

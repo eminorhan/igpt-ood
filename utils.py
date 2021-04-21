@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import Compose, Resize, RandomCrop, CenterCrop
+from torchvision.transforms import Compose, Resize, RandomCrop, CenterCrop, ToTensor, Normalize
 
 
 class ImageDataset(Dataset):
@@ -24,10 +24,11 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         x, y = self.pt_dataset[idx]
-        x = torch.from_numpy(np.array(x)).view(-1, 3) # flatten out all pixels
-        x = x[self.perm].float() # reshuffle pixels with any fixed permutation and -> float
+        x = (np.array(x) - 127.5) / 127.5
+        x = torch.from_numpy(x).view(-1, 3)  # x = x.view(-1, 3)  # flatten out all pixels
+        x = x[self.perm].float()  # reshuffle pixels with any fixed permutation and -> float
         a = ((x[:, None, :] - self.clusters[None, :, :])**2).sum(-1).argmin(1) # cluster assignments
-        return a[:-1], a[1:] # always just predict the next one in the sequence
+        return a[:-1], a[1:]  # always just predict the next one in the sequence
 
 class ImageDatasetWithLabels(Dataset):
     """
@@ -47,10 +48,11 @@ class ImageDatasetWithLabels(Dataset):
 
     def __getitem__(self, idx):
         x, y = self.pt_dataset[idx]
-        x = torch.from_numpy(np.array(x)).view(-1, 3) # flatten out all pixels
+        x = (np.array(x) - 127.5) / 127.5
+        x = torch.from_numpy(x).view(-1, 3)  # x = x.view(-1, 3) # flatten out all pixels
         x = x[self.perm].float() # reshuffle pixels with any fixed permutation and -> float
         a = ((x[:, None, :] - self.clusters[None, :, :])**2).sum(-1).argmin(1) # cluster assignments
-        return a[:-1], y
+        return a[:-1], y  # predict the labels
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
