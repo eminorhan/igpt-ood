@@ -1,3 +1,4 @@
+import os
 import time
 import numpy as np
 import torch
@@ -99,14 +100,14 @@ def load_dataloaders(data_dir, clusters, batch_size, workers, n_px):
     """
     # Load training data
     train_trfs = Compose([Resize(256), RandomCrop((224, 224)), Resize((n_px, n_px))])
-    traindir = data_dir  # os.path.join(data_dir, 'train')  # TODO: revert this back
+    traindir = os.path.join(data_dir, 'train')  # TODO: revert this back
     train_imgs = ImageFolder(traindir, train_trfs)
     train_data = ImageDatasetWithLabels(train_imgs, n_px, clusters)
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True, sampler=None)
 
     # Load validation data
     val_trfs = Compose([Resize(256), CenterCrop((224, 224)), Resize((n_px, n_px))])
-    valdir = data_dir  # os.path.join(data_dir, 'val')  # TODO: revert this back
+    valdir = os.path.join(data_dir, 'val')  # TODO: revert this back
     val_imgs = ImageFolder(valdir, val_trfs)
     val_data = ImageDatasetWithLabels(val_imgs, n_px, clusters)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True, sampler=None)
