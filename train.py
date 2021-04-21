@@ -17,6 +17,7 @@ parser.add_argument('--workers', default=8, type=int, help='number of workers fo
 parser.add_argument('--print_freq', default=100, type=int, help='print results after this many iterations')
 
 if __name__ == '__main__':
+    
     args = parser.parse_args()
     print(args)
 

@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import Compose, Resize, RandomCrop, CenterCrop, ToTensor, Normalize
+from torchvision.transforms import Compose, Resize, RandomCrop, CenterCrop
 
 
 class ImageDataset(Dataset):
