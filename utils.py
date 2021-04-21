@@ -135,9 +135,8 @@ def train(train_loader, model, criterion, optimizer, epoch, print_freq=100):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        if torch.cuda.is_available():
-            images = images.cuda()
-            target = target.cuda()
+        images = images.cuda()
+        target = target.cuda()
 
         # compute output
         output = model(images)
@@ -174,9 +173,8 @@ def validate(val_loader, model):
         end = time.time()
         for i, (images, target) in enumerate(val_loader):
 
-            if torch.cuda.is_available():
-                images = images.cuda()
-                target = target.cuda()
+            images = images.cuda()
+            target = target.cuda()
 
             # compute output
             output = model(images)

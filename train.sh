@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --account=cds
-#SBATCH --gres=gpu:rtx8000:2
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=300GB
+#SBATCH --gres=gpu:rtx8000:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=180GB
 #SBATCH --time=48:00:00
 #SBATCH --array=0
 #SBATCH --job-name=train_igpt
