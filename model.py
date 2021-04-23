@@ -144,43 +144,7 @@ class ImageGPT2LMHeadModel(GPT2LMHeadModel):
   def tie_weights(self):  # image-gpt doesn't tie output and input embeddings
     pass 
 
-class LinearProbeImageGPT(nn.Module):
-    """ Image GPT with a linear classifier head attached """
-    def __init__(self, wte, wpe, drop, blocks, ln_1, head):
-        super().__init__()
-
-        # input embedding stem
-        self.tok_emb = wte
-        self.pos_emb = wpe
-        self.drop = drop
-        self.blocks = blocks
-        self.ln_1 = ln_1
-        self.head = head
-
-        print('Number of parameters in LinearProbeImageGPT:', sum(p.numel() for p in self.parameters()))
-
-    def forward(self, idx):
-        _, t = idx.size()
-
-        pos_idx = torch.arange(0, t, dtype=torch.long)
-        pos_idx = pos_idx.cuda()
-        pos_idx = pos_idx.unsqueeze(0).view(-1, t)
-
-        # forward the GPT model
-        token_embeddings = self.tok_emb(idx)  
-        position_embeddings = self.pos_emb(pos_idx) 
-
-        x = self.drop(token_embeddings + position_embeddings)
-        for block in range(len(self.blocks)):
-            x = self.blocks[block](x)[0]
-
-        x = self.ln_1(x)
-        x = torch.mean(x, 1, False)
-        logits = self.head(x)
-
-        return logits
-
-def load_igpt(model_size, model_path, cluster_path, n_px, prly, n_classes):
+def load_igpt(model_size, model_path, cluster_path, n_px):
     """ Load pretrained model and clusters """
     if model_size == "l":
         n_embd, n_head, n_layer = 1536, 16, 48
@@ -194,8 +158,5 @@ def load_igpt(model_size, model_path, cluster_path, n_px, prly, n_classes):
     vocab_size = len(clusters) + 1  # add one for start of sentence token
     config = transformers.GPT2Config(vocab_size=vocab_size, n_ctx=n_px*n_px, n_positions=n_px*n_px, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
     model = ImageGPT2LMHeadModel.from_pretrained(model_path, from_tf=True, config=config)
-
-    head = torch.nn.Linear(in_features=n_embd, out_features=n_classes, bias=True)
-    model = LinearProbeImageGPT(model.transformer.wte, model.transformer.wpe, model.transformer.drop, model.transformer.h[:prly], model.transformer.h[prly+1].ln_1, head)
 
     return model, torch.from_numpy(clusters)
