@@ -6,12 +6,12 @@
 #SBATCH --mem=200GB
 #SBATCH --time=48:00:00
 #SBATCH --array=0
-#SBATCH --job-name=extract_igpt
-#SBATCH --output=extract_igpt_%A_%a.out
+#SBATCH --job-name=cache_igpt
+#SBATCH --output=cache_igpt_%A_%a.out
 
 module purge
 module load cuda/11.1.74
 
-python -u /scratch/eo41/image-gpt/train.py
+python -u /scratch/eo41/image-gpt/cache.py
 
 echo "Done"
