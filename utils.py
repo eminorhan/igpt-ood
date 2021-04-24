@@ -81,6 +81,7 @@ def extract(loader, model, prly, print_freq=100):
     model.eval()
 
     activations = []
+    labels = []
 
     with torch.no_grad():
         for i, (images, target) in enumerate(loader):
@@ -92,8 +93,9 @@ def extract(loader, model, prly, print_freq=100):
             output = model(images)
 
             activation = torch.mean(output[1][prly][0], 2)
-            activation = activation.view(loader.batch_size, -1)
+            activation = activation.view(activation.size(0), -1)
             activations.append(activation)
+            labels.append(target)
 
             if i % print_freq == 0:
                 print('Iteration', i, 'of', len(loader))
@@ -102,4 +104,8 @@ def extract(loader, model, prly, print_freq=100):
         activations = activations.cpu().numpy()
         print('Cache shape:', activations.shape)
 
-    return activations
+        labels = torch.cat(labels)
+        labels = labels.cpu().numpy()
+        print('Labels shape:', labels.shape)
+
+    return activations, labels

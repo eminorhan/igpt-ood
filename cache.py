@@ -30,8 +30,7 @@ if __name__ == '__main__':
     # load train and val loader
     train_loader, val_loader = load_dataloaders(args.train_path, args.val_path, clusters, args.batch_size, args.workers, n_px)
 
-    train_cache = extract(train_loader, model, args.prly, args.print_freq)
+    val_x, val_y = extract(val_loader, model, args.prly, args.print_freq)
+    tr_x, tr_y = extract(train_loader, model, args.prly, args.print_freq)
 
-    val_cache = extract(val_loader, model, args.prly, args.print_freq)
-
-    np.savez('cache_{}_{}.npz'.format(args.model_size, args.prly), train_cache=train_cache, val_cache=val_cache)
+    np.savez('cache_{}_{}.npz'.format(args.model_size, args.prly), tr_x=tr_x, tr_y=tr_y, val_x=val_x, val_y=val_y)
