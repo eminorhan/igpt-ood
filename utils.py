@@ -55,13 +55,12 @@ class ImageDatasetWithLabels(Dataset):
         a = ((x[:, None, :] - self.clusters[None, :, :])**2).sum(-1).argmin(1)  # cluster assignments
         return a[:-1], y  # predict the labels
 
-def load_dataloaders(clusters, batch_size, workers, n_px):  
+def load_dataloaders(traindir, valdir, clusters, batch_size, workers, n_px):  
     """
     Load training and validation data loaders
     """
     # Load training data
     train_trfs = Compose([Resize(256), RandomCrop((224, 224)), Resize((n_px, n_px))])
-    traindir = os.path.join('/scratch/work/public/imagenet', 'train')  # TODO: revert this back
     train_imgs = ImageFolder(traindir, train_trfs)
     train_data = ImageDatasetWithLabels(train_imgs, n_px, clusters)
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True, sampler=None)
@@ -69,7 +68,6 @@ def load_dataloaders(clusters, batch_size, workers, n_px):
 
     # Load validation data
     val_trfs = Compose([Resize(256), CenterCrop((224, 224)), Resize((n_px, n_px))])
-    valdir = os.path.join('/scratch/eo41/imagenet', 'val')  # TODO: revert this back
     val_imgs = ImageFolder(valdir, val_trfs)
     val_data = ImageDatasetWithLabels(val_imgs, n_px, clusters)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True, sampler=None)
