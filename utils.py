@@ -92,7 +92,7 @@ def extract(loader, model, prly, print_freq=100):
             # compute output
             output = model(images)
 
-            activation = torch.mean(output[1][prly][0], 2)
+            activation = torch.mean(output[1][prly][1], 2)
             activation = activation.view(activation.size(0), -1)
             activations.append(activation.cpu().numpy())
             labels.append(target.cpu().numpy())

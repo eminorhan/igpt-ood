@@ -39,13 +39,16 @@ model = torch.nn.Linear(tr_x.shape[-1], 1000)
 model = torch.nn.DataParallel(model).cuda()
 print(model)
 criterion = torch.nn.CrossEntropyLoss().cuda()
-optimizer = torch.optim.Adam(model.parameters(), 0.0005, weight_decay=0.0)
+optimizer = torch.optim.Adam(model.parameters(), 0.001, weight_decay=0.0)
 
 tr_acc1_list = []
 
 print('Starting training')
 for epoch in range(args.epochs):
     # train for one epoch
+    if epoch == 280 or epoch == 290:
+        for g in optimizer.param_groups:
+            g['lr'] = g['lr'] / 10.0    
     acc1 = train(tr_loader, model, criterion, optimizer, epoch, args)
     tr_acc1_list.append(acc1)
 
