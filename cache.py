@@ -15,7 +15,7 @@ parser.add_argument('--batch_size', default=64, type=int, help='batch size')
 parser.add_argument('--prly', default=5, type=int, help='probe layer')
 parser.add_argument('--workers', default=8, type=int, help='number of workers for data loaders')
 parser.add_argument('--print_freq', default=100, type=int, help='print results after this many iterations')
-parser.add_argument('--partition', default=0, type=int, help='which partition of the data', choices=[0, 1, 2, 3, 4])
+parser.add_argument('--partition', default=0, type=int, help='which partition of the data', choices=[0, 1, 2])
 parser.add_argument('--fragment', default='trainval', type=str, help='Which part of data to cache', choices=['val', 'train', 'trainval'])
 
 if __name__ == '__main__':
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     print(args)
 
     n_px = 32  # The released OpenAI iGPT models were trained with 32x32 images. 
-    num_partitions = 1  # number of partitions to cache data into
+    num_partitions = 3  # number of partitions to cache data into
 
     assert num_partitions > args.partition, "Partition argument must be smaller than the number of partitions."
 
