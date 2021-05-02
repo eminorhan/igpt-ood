@@ -12,6 +12,6 @@
 module purge
 module load cuda/11.1.74
 
-python -u /scratch/eo41/image-gpt/cache.py --batch_size 111 --model_size 's' --prly 15 --model_path '/scratch/eo41/image-gpt/models/s/model.ckpt-1000000.index' --cluster_path '/scratch/eo41/image-gpt/models/s/kmeans_centers.npy'
+python -u /scratch/eo41/image-gpt/cache.py --print_freq 1000 --batch_size 17 --model_size 'l' --prly 25 --partition 0 --fragment 'val' --model_path '/scratch/eo41/image-gpt/models/l/model.ckpt-1000000.index' --cluster_path '/scratch/eo41/image-gpt/models/l/kmeans_centers.npy'
 
 echo "Done"

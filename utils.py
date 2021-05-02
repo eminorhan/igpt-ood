@@ -55,63 +55,6 @@ class ImageDatasetWithLabels(Dataset):
         a = ((x[:, None, :] - self.clusters[None, :, :])**2).sum(-1).argmin(1)  # cluster assignments
         return a[:-1], y  # predict the labels
 
-def load_dataloaders(traindir, valdir, clusters, batch_size, workers, n_px):  
-    """
-    Load training and validation data loaders
-    """
-    # Load training data
-    train_trfs = Compose([Resize(256), RandomCrop((224, 224)), Resize((n_px, n_px))])
-    train_imgs = ImageFolder(traindir, train_trfs)
-    train_data = ImageDatasetWithLabels(train_imgs, n_px, clusters)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True, sampler=None)
-    print('Training set size:', len(train_imgs))
-
-    # Load validation data
-    val_trfs = Compose([Resize(256), CenterCrop((224, 224)), Resize((n_px, n_px))])
-    val_imgs = ImageFolder(valdir, val_trfs)
-    val_data = ImageDatasetWithLabels(val_imgs, n_px, clusters)
-    val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True, sampler=None)
-    print('Validation set size:', len(val_imgs))
-
-    return train_loader, val_loader
-
-def extract(loader, model, prly, print_freq=100):
-
-    # switch to evaluate mode
-    model.eval()
-
-    activations = []
-    labels = []
-
-    with torch.no_grad():
-        for i, (images, target) in enumerate(loader):
-
-            images = images.cuda()
-            target = target.cuda()
-
-            # compute output
-            output = model(images)
-
-            activation = torch.mean(output[1][prly][1], 2)
-            activation = activation.view(activation.size(0), -1)
-            activations.append(activation.cpu().numpy())
-            labels.append(target.cpu().numpy())
-
-            if i % print_freq == 0:
-                print('Iteration', i, 'of', len(loader))
-
-        # activations = torch.cat(activations)
-        # activations = activations.cpu().numpy()
-        activations = np.concatenate(activations)
-        print('Cache shape:', activations.shape)
-
-        # labels = torch.cat(labels)
-        # labels = labels.cpu().numpy()
-        labels = np.concatenate(labels)
-        print('Labels shape:', labels.shape)
-
-    return activations, labels
-
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f'):
@@ -150,6 +93,61 @@ class ProgressMeter(object):
         num_digits = len(str(num_batches // 1))
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+
+def load_dataloaders(traindir, valdir, clusters, batch_size, workers, n_px, tr_sampler=None):  
+    """
+    Load training and validation data loaders
+    """
+    # Load training data
+    train_trfs = Compose([Resize(256), RandomCrop((224, 224)), Resize((n_px, n_px))])
+    train_imgs = ImageFolder(traindir, train_trfs)
+    train_data = ImageDatasetWithLabels(train_imgs, n_px, clusters)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True, sampler=tr_sampler)
+    print('Training set size:', len(train_imgs))
+    print('Training loader size:', len(train_loader))
+
+    # Load validation data
+    val_trfs = Compose([Resize(256), CenterCrop((224, 224)), Resize((n_px, n_px))])
+    val_imgs = ImageFolder(valdir, val_trfs)
+    val_data = ImageDatasetWithLabels(val_imgs, n_px, clusters)
+    val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True, sampler=None)
+    print('Validation set size:', len(val_imgs))
+    print('Validation loader size:', len(val_loader))
+
+    return train_loader, val_loader
+
+def extract(loader, model, prly, print_freq=100):
+
+    # switch to evaluate mode
+    model.eval()
+
+    activations = []
+    labels = []
+
+    with torch.no_grad():
+        for i, (images, target) in enumerate(loader):
+
+            images = images.cuda()
+            target = target.cuda()
+
+            # compute output
+            output = model(images)
+
+            activation = torch.mean(output[1][prly][1], 2)
+            activation = activation.view(activation.size(0), -1)
+            activations.append(activation.cpu().numpy())
+            labels.append(target.cpu().numpy())
+
+            if i % print_freq == 0:
+                print('Iteration', i, 'of', len(loader))
+
+        activations = np.concatenate(activations)
+        print('Cache shape:', activations.shape)
+
+        labels = np.concatenate(labels)
+        print('Labels shape:', labels.shape)
+
+    return activations, labels
 
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""

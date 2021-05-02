@@ -15,6 +15,8 @@ parser.add_argument('--batch_size', default=64, type=int, help='batch size')
 parser.add_argument('--prly', default=5, type=int, help='probe layer')
 parser.add_argument('--workers', default=8, type=int, help='number of workers for data loaders')
 parser.add_argument('--print_freq', default=100, type=int, help='print results after this many iterations')
+parser.add_argument('--partition', default=0, type=int, help='which partition of the data', choices=[0, 1, 2, 3, 4])
+parser.add_argument('--fragment', default='trainval', type=str, help='Which part of data to cache', choices=['val', 'train', 'trainval'])
 
 if __name__ == '__main__':
     
@@ -22,15 +24,26 @@ if __name__ == '__main__':
     print(args)
 
     n_px = 32  # The released OpenAI iGPT models were trained with 32x32 images. 
+    num_partitions = 1  # number of partitions to cache data into
+
+    assert num_partitions > args.partition, "Partition argument must be smaller than the number of partitions."
 
     # load model and clusters
     model, clusters = load_igpt(args.model_size, args.model_path, args.cluster_path, n_px)
     model = torch.nn.DataParallel(model).cuda()
 
     # load train and val loader
-    train_loader, val_loader = load_dataloaders(args.train_path, args.val_path, clusters, args.batch_size, args.workers, n_px)
+    splitted_ind = np.array_split(np.arange(1281167), num_partitions)  # divide into roughly equal parts
+    tr_sampler = torch.utils.data.sampler.SubsetRandomSampler(splitted_ind[args.partition])
+    train_loader, val_loader = load_dataloaders(args.train_path, args.val_path, clusters, args.batch_size, args.workers, n_px, tr_sampler)
 
-    val_x, val_y = extract(val_loader, model, args.prly, args.print_freq)
-    tr_x, tr_y = extract(train_loader, model, args.prly, args.print_freq)
-
-    np.savez('cache_{}_{}.npz'.format(args.model_size, args.prly), tr_x=tr_x, tr_y=tr_y, val_x=val_x, val_y=val_y)
+    if args.fragment == 'val':
+        val_x, val_y = extract(val_loader, model, args.prly, args.print_freq)
+        np.savez('cache_{}_{}_val.npz'.format(args.model_size, args.prly), val_x=val_x, val_y=val_y)
+    elif args.fragment == 'train':
+        tr_x, tr_y = extract(train_loader, model, args.prly, args.print_freq)
+        np.savez('cache_{}_{}_{}_tr.npz'.format(args.model_size, args.prly, args.partition), tr_x=tr_x, tr_y=tr_y)
+    elif args.fragment == 'trainval':
+        val_x, val_y = extract(val_loader, model, args.prly, args.print_freq)
+        tr_x, tr_y = extract(train_loader, model, args.prly, args.print_freq)
+        np.savez('cache_{}_{}.npz'.format(args.model_size, args.prly), tr_x=tr_x, tr_y=tr_y, val_x=val_x, val_y=val_y)
