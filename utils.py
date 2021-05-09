@@ -165,6 +165,30 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res    
 
+def inst_accuracies(labels, preds):
+    from constants import conversion_table
+
+    shape_matches = np.zeros(len(preds))
+    texture_matches = np.zeros(len(preds))
+
+    for i in range(len(preds)):
+        pred = preds[i]
+        texture = labels['textures'][i]
+        shape = labels['shapes'][i]
+
+        if pred in conversion_table[texture]:
+            texture_matches[i] = 1
+
+        if pred in conversion_table[shape]:
+            shape_matches[i] = 1
+
+    correct = shape_matches + texture_matches  # texture or shape predictions
+    frac_correct = np.mean(correct)
+    frac_shape = np.sum(shape_matches) / np.sum(correct)
+    frac_texture = np.sum(texture_matches) / np.sum(correct)
+
+    return frac_correct, frac_shape, frac_texture
+
 def train(train_loader, model, criterion, optimizer, epoch, args):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')

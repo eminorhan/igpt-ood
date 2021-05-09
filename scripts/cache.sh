@@ -9,7 +9,7 @@
 #SBATCH --output=cache_igpt_%A_%a.out
 #SBATCH -a 0-5
 
-PARRAY=(10 11 12 13 14 15)    
+PARRAY=(20 21 22 23 24 25)    
 
 p=${PARRAY[`expr $SLURM_ARRAY_TASK_ID % ${#PARRAY[@]}`]}
 v=`expr $SLURM_ARRAY_TASK_ID / ${#PARRAY[@]}`
@@ -17,6 +17,6 @@ v=`expr $SLURM_ARRAY_TASK_ID / ${#PARRAY[@]}`
 module purge
 module load cuda/11.1.74
 
-python -u /scratch/eo41/image-gpt/cache.py --print_freq 10 --batch_size 64 --model_size 's' --prly $p --partition $v --fragment 'val' --model_path '/scratch/eo41/image-gpt/models/s/model.ckpt-1000000.index' --cluster_path '/scratch/eo41/image-gpt/models/s/kmeans_centers.npy' --val_path '/scratch/eo41/imagenet_a/'
+python -u /scratch/eo41/image-gpt/cache.py --print_freq 10 --batch_size 16 --model_size 'l' --prly $p --partition $v --fragment 'val' --model_path '/scratch/eo41/image-gpt/models/l/model.ckpt-1000000.index' --cluster_path '/scratch/eo41/image-gpt/models/l/kmeans_centers.npy' --val_path '/scratch/eo41/imagenet_st/'
 
 echo "Done"

@@ -12,6 +12,6 @@
 module purge
 module load cuda/11.1.74
 
-python -u /scratch/eo41/image-gpt/evaluate.py --model_size 'l' --prly 21 --batch_size 1024 --eval_data 'ina'
+python -u /scratch/eo41/image-gpt/evaluate.py --model_size 'l' --prly 25 --batch_size 1201 --eval_data 'inst'
 
 echo "Done"

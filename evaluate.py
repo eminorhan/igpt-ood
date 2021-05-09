@@ -3,16 +3,16 @@ import argparse
 import torch
 import numpy as np
 from torch.utils.data import TensorDataset, DataLoader
-from utils import AverageMeter, accuracy
-from constants import indices_in_1k
+from utils import AverageMeter, accuracy, inst_accuracies
+from constants import indices_in_1k, rel_inds
 
 parser = argparse.ArgumentParser(description='Train linear classifiers on top of extracted features')
 parser.add_argument('--cache_dir', default='/scratch/eo41/image-gpt/caches', type=str, help='directory where we store caches')
 parser.add_argument('--classifier_dir', default='/scratch/eo41/image-gpt/classifiers', type=str, help='directory where we store trained classifiers')
-parser.add_argument('--eval_data', default='ina', type=str, help='which data to evaluate on', choices=['ina', 'ins', 'inp', 'inc', 'inr'])
+parser.add_argument('--eval_data', default='ina', type=str, help='which data to evaluate on', choices=['ina', 'inst', 'insk', 'inp', 'inc', 'inr'])
 parser.add_argument('--model_size', default='s', type=str, help='Model size', choices=['l', 'm', 's'])
 parser.add_argument('--prly', default=12, type=int, help='probe layer')
-parser.add_argument('--batch_size', default=64, type=int, help='batch_size')
+parser.add_argument('--batch_size', default=256, type=int, help='batch_size')
 parser.add_argument('--workers', default=4, type=int, help='data loading workers')
 
 args = parser.parse_args()
@@ -60,9 +60,16 @@ with torch.no_grad():
             output = model(images)[:, indices_in_1k]
         else:
             output = model(images)
-        print(output.shape)    
 
-        preds.append(np.argmax(output.cpu().numpy(), axis=1))
+        if args.eval_data == 'inst':
+            new_output = -np.inf * torch.ones(output.size(0), 1000)
+            new_output = new_output.cuda()
+            new_output[:, rel_inds] = output[:, rel_inds]
+            output = new_output
+
+        pred = np.argmax(output.cpu().numpy(), axis=1)
+
+        preds.append(pred)
         targets.append(target.cpu().numpy())
 
     preds = np.concatenate(preds)
@@ -72,6 +79,11 @@ with torch.no_grad():
 
     assert preds.shape == targets.shape, 'prediction shape should match target shape.'
 
-    acc1 = np.mean(preds == targets)
-    print('Top-1 accuracy on evaluation data:', acc1)    
+    if args.eval_data == 'inst':
+        labels = np.load('../cueconflict_labels.npz')
+        frac_correct, frac_shape, frac_texture = inst_accuracies(labels, preds)
+        print('Correct:', frac_correct, 'Shape:', frac_shape, 'Texture:', frac_texture)
+    else:    
+        acc1 = np.mean(preds == targets)
+        print('Top-1 accuracy on evaluation data:', acc1)    
 
