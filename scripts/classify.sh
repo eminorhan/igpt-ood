@@ -12,6 +12,6 @@
 module purge
 module load cuda/11.1.74
 
-python -u /scratch/eo41/image-gpt/classify.py --model_size 's' --prly 12 --batch_size 128 --print_freq 10000 --epochs 300
+python -u /scratch/eo41/image-gpt/classify.py --model_size 'm' --prly 20 --batch_size 128 --print_freq 10000 --epochs 300
 
 echo "Done"

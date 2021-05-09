@@ -12,7 +12,6 @@ parser.add_argument('--prly', default=5, type=int, help='probe layer')
 parser.add_argument('--batch_size', default=128, type=int, help='batch_size')
 parser.add_argument('--workers', default=8, type=int, help='data loading workers')
 parser.add_argument('--epochs', default=15, type=int, help='number of training epochs')
-parser.add_argument('--print_freq', default=100, type=int, help='print frequency')
 
 args = parser.parse_args()
 print(args)
